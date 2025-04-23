@@ -27,6 +27,7 @@ const registerUser = async (parameters) => {
       },
     };
   } catch (error) {
+    console.log(error);
     return error;
   }
 };

@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import { connectDb } from "./Config/connectDB.js";
 import { userRouter } from "./Routes/User.Routes.js";
+import { productRoutes } from "./Routes/Product.Routes.js";
 const app = express();
 
 app.use(cors());
@@ -17,5 +18,6 @@ app.use(bodyParser.json());
 })();
 
 app.use("/users", userRouter);
+app.use("/products", productRoutes);
 
 export { app };

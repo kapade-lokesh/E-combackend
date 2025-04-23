@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { User } from "../Models/User.Model.js";
 import { findByID } from "../Repository/User.Repo.js";
 
 const isLoggedin = async (req, res, next) => {
@@ -26,4 +25,12 @@ const isLoggedin = async (req, res, next) => {
   }
 };
 
-export { isLoggedin };
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    res.status(403).json({ message: "Not authorized as an admin" });
+  }
+};
+
+export { isLoggedin, isAdmin };
