@@ -1,16 +1,19 @@
 import { User } from "../Models/User.Model.js";
 
-const findByID = async (id) => {
+const findUserById = async (id) => {
   return await User.findById(id).select("-password");
 };
 
-const findByEmail = async (email) => {
-  return await User.findOne({ email });
+const findUserByEmail = async (email) => {
+  return await User.findOne({ email }).select("-password");
 };
 
-const saveUser = async (parameters) => {
-  const user = new User(parameters);
+const saveNewUser = async (userData) => {
+  const user = new User(userData);
   return await user.save();
 };
 
-export { findByEmail, saveUser, findByID };
+const findUserByEmailWithPassword = async (email) => {
+  return await User.findOne({ email }); // No .select to include password
+};
+export { findUserByEmail, saveNewUser, findUserById,findUserByEmailWithPassword };

@@ -18,7 +18,7 @@ const productSchema = Schema(
       type: Number,
       required: true,
     },
-    descountPrice: {
+    discountPrice: {
       type: Number,
     },
     countInStock: {

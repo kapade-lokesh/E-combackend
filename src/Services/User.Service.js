@@ -1,73 +1,85 @@
-import { findByEmail, saveUser } from "../Repository/User.Repo.js";
+import {
+  findUserByEmail,
+  findUserByEmailWithPassword,
+  saveNewUser,
+} from "../Repository/User.Repo.js";
 import jwt from "jsonwebtoken";
-const registerUser = async (parameters) => {
-  const { name, email, password, role } = parameters;
 
-  try {
-    //check if user already exist
-    const existingUser = await findByEmail(email);
-    if (existingUser) {
-      return { message: "User Already Exist With Email" };
-    }
+// Helper function to fetch user with password for login
 
-    //register logic
-    const user = await saveUser({ name, email, password, role });
+const registerUser = async (userData) => {
+  const { name, email, password, role } = userData;
 
-    if (!user) {
-      return { message: "Operation fail" };
-    }
-
-    return {
-      message: "Register successful",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    };
-  } catch (error) {
-    console.log(error);
-    return error;
+  // Check if user already exists
+  const existingUser = await findUserByEmail(email);
+  if (existingUser) {
+    throw new Error("User Already Exists With Email");
   }
+
+  // Register logic
+  let user;
+  try {
+    user = await saveNewUser({ name, email, password, role });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      throw new Error(`Validation failed: ${error.message}`);
+    }
+    throw new Error(`Failed to register user: ${error.message}`);
+  }
+
+  if (!user) {
+    throw new Error("Operation failed");
+  }
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  return {
+    message: "Register successful",
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+  };
 };
 
-const loginUser = async (parameters) => {
-  const { name, email, password } = parameters;
-  //check user exist or not
-  try {
-    const user = await findByEmail(email);
-    if (!user) {
-      return { message: "User Not Exist With Email" };
-    }
+const loginUser = async (loginData) => {
+  const { email, password } = loginData; // Removed unused 'name'
 
-    //chek for the password match or not
-    const isPassCorrect = await user.matchPassword(password);
-
-    if (!isPassCorrect) {
-      return { message: "invalid credentials" };
-    }
-
-    //create authtoken
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    return {
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-      token,
-    };
-  } catch (error) {
-    console.log(error);
-    return error;
+  // Check if user exists
+  const user = await findUserByEmailWithPassword(email);
+  if (!user) {
+    throw new Error("User Not Exist With Email");
   }
+
+  // Check password match
+  const isPasswordCorrect = await user.matchPassword(password);
+  if (!isPasswordCorrect) {
+    throw new Error("Invalid credentials");
+  }
+
+  // Create auth token
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  return {
+    message: "Login successful",
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
+    token,
+  };
 };
 
 export { registerUser, loginUser };

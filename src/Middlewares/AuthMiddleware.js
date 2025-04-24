@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { findByID } from "../Repository/User.Repo.js";
+import { findUserById } from "../Repository/User.Repo.js";
 
 const isLoggedin = async (req, res, next) => {
   let token;
@@ -14,7 +14,7 @@ const isLoggedin = async (req, res, next) => {
 
       console.log(decoded);
 
-      req.user = await findByID(decoded.id);
+      req.user = await findUserById(decoded.id);
       next();
     } catch (error) {
       console.log(error);
