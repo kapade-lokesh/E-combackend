@@ -1,6 +1,7 @@
 import {
   addNewProduct,
   deleteProductById,
+  findProductByCustomfilter,
   findProductById,
   updateProductById,
 } from "../Repository/Product.Repo.js";
@@ -140,4 +141,105 @@ const deleteProduct = async (id) => {
 
   return { message: "Product deleted successfully", product };
 };
-export { addProduct, getProductById, updateProduct, deleteProduct };
+
+const getFilteredProducts = async (query) => {
+  const {
+    collection,
+    size,
+    color,
+    gender,
+    minPrice,
+    maxPrice,
+    sortBy,
+    search,
+    category,
+    material,
+    brand,
+    limit,
+  } = query;
+
+  let filteredQuery = {};
+
+  // filter logic
+  if (collection && collection.toLocaleLowerCase() !== "all") {
+    filteredQuery.collections = collection;
+  }
+
+  if (category && category.toLocaleLowerCase() !== "all") {
+    filteredQuery.category = category;
+  }
+
+  if (material) {
+    filteredQuery.material = { $in: material.split(",") };
+  }
+
+  if (brand) {
+    filteredQuery.brand = { $in: brand.split(",") };
+  }
+
+  if (size) {
+    filteredQuery.size = { $in: size.split(",") };
+  }
+
+  if (color) {
+    filteredQuery.colors = { $in: [color] };
+  }
+
+  if (gender) {
+    filteredQuery.gender = gender;
+  }
+
+  if (minPrice || maxPrice) {
+    filteredQuery.price = {};
+    if (minPrice) {
+      filteredQuery.price.$gte = Number(minPrice);
+    }
+    if (maxPrice) {
+      filteredQuery.price.$lte = Number(maxPrice);
+    }
+  }
+
+  if (search) {
+    filteredQuery.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  let sort = {};
+  if (sortBy) {
+    switch (sortBy) {
+      case "priceAsc":
+        sort = { price: 1 };
+        break;
+
+      case "priceDesc":
+        sort = { price: -1 };
+        break;
+
+      case "popularity":
+        sort = { rating: -1 };
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  //Fetch products and apply sorting and limit
+  let products = await findProductByCustomfilter(filteredQuery, sort, limit);
+
+  if (!products) {
+    throw new Error("Products not Found");
+  }
+
+  return { message: "Product deleted successfully", products };
+};
+
+export {
+  addProduct,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+  getFilteredProducts,
+};

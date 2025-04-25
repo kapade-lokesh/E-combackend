@@ -3,6 +3,7 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
+  getFilteredProducts,
 } from "../Services/Product.Service.js";
 
 // Add a Product (Admin only, protected route)
@@ -59,4 +60,23 @@ const DeleteProduct = async (req, res) => {
   }
 };
 
-export { AddProduct, GetProductById, UpdateProduct, DeleteProduct };
+const GetFilteredProducts = async (req, res) => {
+  try {
+    const result = await getFilteredProducts(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    console.log("Error while deleting product", error.message);
+    res.status(error.message === "product not found" ? 404 : 500).json({
+      message: "Error while deleting the product",
+      error: error.message,
+    });
+  }
+};
+
+export {
+  AddProduct,
+  GetProductById,
+  UpdateProduct,
+  DeleteProduct,
+  GetFilteredProducts,
+};

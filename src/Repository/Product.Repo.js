@@ -16,4 +16,19 @@ const updateProductById = async (id, updateData) => {
 const deleteProductById = async (id) => {
   return await Product.findByIdAndDelete(id, { new: true });
 };
-export { addNewProduct, findProductById, updateProductById,deleteProductById };
+
+const findProductByCustomfilter = async (filter, sort, limit) => {
+  const products = await Product.find(filter)
+    .sort(sort)
+    .limit(Number(limit || 10));
+  console.log(filter);
+  console.log(products);
+  return products;
+};
+export {
+  addNewProduct,
+  findProductById,
+  updateProductById,
+  deleteProductById,
+  findProductByCustomfilter,
+};
