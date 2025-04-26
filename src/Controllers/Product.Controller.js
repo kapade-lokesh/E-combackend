@@ -4,6 +4,9 @@ import {
   updateProduct,
   deleteProduct,
   getFilteredProducts,
+  getSimilerProducts,
+  getBestSeller,
+  getNewArrivals,
 } from "../Services/Product.Service.js";
 
 // Add a Product (Admin only, protected route)
@@ -47,6 +50,7 @@ const UpdateProduct = async (req, res) => {
   }
 };
 
+// Update a Product (Admin only, protected route)
 const DeleteProduct = async (req, res) => {
   try {
     const result = await deleteProduct(req.params.id);
@@ -67,7 +71,46 @@ const GetFilteredProducts = async (req, res) => {
   } catch (error) {
     console.log("Error while deleting product", error.message);
     res.status(error.message === "product not found" ? 404 : 500).json({
-      message: "Error while deleting the product",
+      message: "Error while fetching the product",
+      error: error.message,
+    });
+  }
+};
+
+const GetSimilerProducts = async (req, res) => {
+  try {
+    const result = await getSimilerProducts(req.params, req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(error.message === "product not found" ? 404 : 500).json({
+      message: "Error while fetching the product",
+      error: error.message,
+    });
+  }
+};
+
+const GetBestSeller = async (req, res) => {
+  try {
+    const result = await getBestSeller();
+    res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(error.message === "Product not found" ? 404 : 500).json({
+      message: "Error while fetching the product",
+      error: error.message,
+    });
+  }
+};
+
+const GetNewArrivals = async (req, res) => {
+  try {
+    const result = await getNewArrivals();
+    res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(error.message === "Product not found" ? 404 : 500).json({
+      message: "Error while fetching the product",
       error: error.message,
     });
   }
@@ -79,4 +122,7 @@ export {
   UpdateProduct,
   DeleteProduct,
   GetFilteredProducts,
+  GetSimilerProducts,
+  GetBestSeller,
+  GetNewArrivals,
 };

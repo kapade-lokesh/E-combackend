@@ -1,6 +1,8 @@
 import {
   addNewProduct,
   deleteProductById,
+  findBestSeller,
+  findNewArrivals,
   findProductByCustomfilter,
   findProductById,
   updateProductById,
@@ -227,13 +229,51 @@ const getFilteredProducts = async (query) => {
   }
 
   //Fetch products and apply sorting and limit
-  let products = await findProductByCustomfilter(filteredQuery, sort, limit);
+  const products = await findProductByCustomfilter(filteredQuery, limit, sort);
 
   if (!products) {
     throw new Error("Products not Found");
   }
 
-  return { message: "Product deleted successfully", products };
+  return { message: "Product fetched successfully", products };
+};
+
+const getSimilerProducts = async (params, query) => {
+  console.log(query);
+  const { id } = params;
+  const { limit } = query;
+  console.log(limit);
+  const product = await findProductById(id);
+  if (!product) {
+    throw new Error("Product not found");
+  }
+
+  const filterObj = {
+    _id: { $ne: id },
+    gender: product.gender,
+    category: product.category,
+  };
+
+  const similerProducts = await findProductByCustomfilter(filterObj, limit);
+  return { message: "Similer Products", similerProducts };
+};
+
+const getBestSeller = async () => {
+  const product = await findBestSeller();
+  console.log(product);
+  if (!product) {
+    throw new Error("Product not found");
+  }
+  return { message: "Best seller", product };
+};
+
+const getNewArrivals = async () => {
+  const products = await findNewArrivals();
+  if (!products) {
+    throw new Error("Product not found");
+  }
+
+  return { message: "New Arrivals", products };
 };
 
 export {
@@ -242,4 +282,7 @@ export {
   updateProduct,
   deleteProduct,
   getFilteredProducts,
+  getSimilerProducts,
+  getBestSeller,
+  getNewArrivals,
 };
