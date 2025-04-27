@@ -6,10 +6,10 @@ import {
 } from "../Controllers/User.Controller.js";
 import { isLoggedin } from "../Middlewares/AuthMiddleware.js";
 
-const userRouter = express.Router();
+const userRoutes = express.Router();
 
-userRouter.route("/register").post(RegisterUser);
-userRouter.route("/login").post(LoginUser);
-userRouter.route("/profile").get(isLoggedin, GetUserProfile);
+userRoutes.route("/register").post(RegisterUser);
+userRoutes.route("/login").post(LoginUser);
+userRoutes.route("/profile").get(isLoggedin, GetUserProfile);
 
-export { userRouter };
+export { userRoutes };

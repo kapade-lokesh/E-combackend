@@ -2,8 +2,9 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { connectDb } from "./Config/connectDB.js";
-import { userRouter } from "./Routes/User.Routes.js";
+import { userRoutes } from "./Routes/User.Routes.js";
 import { productRoutes } from "./Routes/Product.Routes.js";
+import { cartRoutes } from "./Routes/Cart.Routes.js";
 const app = express();
 
 app.use(cors());
@@ -17,7 +18,8 @@ app.use(bodyParser.json());
   }
 })();
 
-app.use("/users", userRouter);
+app.use("/users", userRoutes);
 app.use("/products", productRoutes);
+app.use("/cart", cartRoutes);
 
 export { app };
