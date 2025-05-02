@@ -103,7 +103,7 @@ const updateCart = async (updatedData) => {
         prod.color === color
     );
 
-    console.log(productindex);
+  
 
     //if product exist
     if (productindex > -1) {

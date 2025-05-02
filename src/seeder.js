@@ -3,6 +3,7 @@ import { Product } from "./models/Product.Model.js";
 import { User } from "./Models/User.Model.js";
 import { products } from "./data/products.js";
 import { connectDb } from "./Config/connectDB.js";
+import { Cart } from "./Models/Cart.Model.js";
 
 dotenv.config({ path: "../env" });
 
@@ -19,6 +20,7 @@ const seedData = async () => {
     // crearing existing data
     await Product.deleteMany();
     await User.deleteMany();
+    await Cart.deleteMany();
 
     //creating admin user
     const createdUser = await User.create({
