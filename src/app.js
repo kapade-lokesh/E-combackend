@@ -5,6 +5,7 @@ import { connectDb } from "./Config/connectDB.js";
 import { userRoutes } from "./Routes/User.Routes.js";
 import { productRoutes } from "./Routes/Product.Routes.js";
 import { cartRoutes } from "./Routes/Cart.Routes.js";
+import { chekcoutRoutes } from "./Routes/Checkout.Route.js";
 const app = express();
 
 app.use(cors());
@@ -21,5 +22,6 @@ app.use(bodyParser.json());
 app.use("/users", userRoutes);
 app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
+app.use("/checkout", chekcoutRoutes);
 
 export { app };

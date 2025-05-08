@@ -27,4 +27,5 @@ const deleteCartById = async (id) => {
   const deletedProduct = await Cart.findByIdAndDelete(id, { new: true });
   return deletedProduct;
 };
+
 export { addNewCart, findCartByUserId, updateCartById, deleteCartById };
