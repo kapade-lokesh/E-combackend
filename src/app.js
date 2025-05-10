@@ -6,6 +6,7 @@ import { userRoutes } from "./Routes/User.Routes.js";
 import { productRoutes } from "./Routes/Product.Routes.js";
 import { cartRoutes } from "./Routes/Cart.Routes.js";
 import { chekcoutRoutes } from "./Routes/Checkout.Route.js";
+import { orderRoutes } from "./Routes/Order.Routes.js";
 const app = express();
 
 app.use(cors());
@@ -23,5 +24,6 @@ app.use("/users", userRoutes);
 app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
 app.use("/checkout", chekcoutRoutes);
+app.use("/orders", orderRoutes);
 
 export { app };

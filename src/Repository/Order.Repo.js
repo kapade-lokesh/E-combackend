@@ -6,4 +6,14 @@ const addNewOrder = async (parameters) => {
   return order;
 };
 
-export { addNewOrder };
+const findOrderById = async (id) => {
+  const order = await Order.findById(id).populate("user", "name email");
+  return order;
+};
+
+const getOrderByUser = async (filter) => {
+  const orders = await Order.find(filter).sort({ createdAt: -1 });
+  return orders;
+};
+
+export { addNewOrder, getOrderByUser, findOrderById };

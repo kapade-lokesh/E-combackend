@@ -24,8 +24,20 @@ const updateCartById = async (id, updatedCartData) => {
 };
 
 const deleteCartById = async (id) => {
-  const deletedProduct = await Cart.findByIdAndDelete(id, { new: true });
-  return deletedProduct;
+  const deletedCart = await Cart.findByIdAndDelete(id, { new: true });
+  return deletedCart;
 };
 
-export { addNewCart, findCartByUserId, updateCartById, deleteCartById };
+const deleteCartByField = async (field) => {
+  console.log(field);
+  const deletedCart = await Cart.findOneAndDelete(field);
+  console.log(deletedCart);
+  return deletedCart;
+};
+export {
+  addNewCart,
+  findCartByUserId,
+  updateCartById,
+  deleteCartById,
+  deleteCartByField,
+};

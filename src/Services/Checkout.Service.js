@@ -1,4 +1,4 @@
-import { deleteCartById } from "../Repository/Cart.Repo.js";
+import { deleteCartByField } from "../Repository/Cart.Repo.js";
 import {
   addNewCheckout,
   findCheckoutByid,
@@ -26,7 +26,7 @@ const addCheckOut = async (parameters, user) => {
 const updateCheckOut = async (parameters, params) => {
   const { paymentStatus, paymentDetails } = parameters;
   const { id } = params;
-   
+
   const checkout = await findCheckoutByid(id);
 
   if (!checkout) {
@@ -71,7 +71,7 @@ const finalizeCheckout = async (params) => {
     checkout.isFinalized = true;
     checkout.finalizedAt = Date.now();
     await checkout.save();
-    await deleteCartById(checkout.user);
+    await deleteCartByField({ user: checkout.user });
 
     return { message: "final order", finalOrder };
   } else if (checkout.isFinalized) {
