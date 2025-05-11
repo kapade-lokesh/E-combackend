@@ -7,6 +7,8 @@ import { productRoutes } from "./Routes/Product.Routes.js";
 import { cartRoutes } from "./Routes/Cart.Routes.js";
 import { chekcoutRoutes } from "./Routes/Checkout.Route.js";
 import { orderRoutes } from "./Routes/Order.Routes.js";
+import { uploadRoutes } from "./Routes/Upload.Routes.js";
+import { subcribeRoutes } from "./Routes/Subcribe.Routes.js";
 const app = express();
 
 app.use(cors());
@@ -25,5 +27,7 @@ app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
 app.use("/checkout", chekcoutRoutes);
 app.use("/orders", orderRoutes);
+app.use("/upload", uploadRoutes);
+app.use("/subscrib", subcribeRoutes);
 
 export { app };
