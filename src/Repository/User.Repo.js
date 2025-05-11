@@ -16,4 +16,33 @@ const saveNewUser = async (userData) => {
 const findUserByEmailWithPassword = async (email) => {
   return await User.findOne({ email }); // No .select to include password
 };
-export { findUserByEmail, saveNewUser, findUserById,findUserByEmailWithPassword };
+
+// **  functions for admin user getAllUsers,updateUser,deleteUser
+
+const findAllUsers = async () => {
+  const users = await User.find();
+  return users;
+};
+
+const updateUser = async (id, updatedData) => {
+  const updatedUser = await User.findByIdAndUpdate(id, updatedData, {
+    new: true,
+  });
+  return updatedUser;
+};
+
+const deleteUser = async (id) => {
+  const deletedUser = await User.findByIdAndDelete(id);
+
+  return deletedUser;
+};
+
+export {
+  findAllUsers,
+  updateUser,
+  deleteUser,
+  findUserByEmail,
+  saveNewUser,
+  findUserById,
+  findUserByEmailWithPassword,
+};

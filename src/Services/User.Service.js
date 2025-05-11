@@ -1,7 +1,10 @@
 import {
   findUserByEmail,
   findUserByEmailWithPassword,
+  findAllUsers,
   saveNewUser,
+  updateUser,
+  deleteUser,
 } from "../Repository/User.Repo.js";
 import jwt from "jsonwebtoken";
 
@@ -30,12 +33,6 @@ const registerUser = async (userData) => {
   if (!user) {
     throw new Error("Operation failed");
   }
-
-  const token = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
 
   return {
     message: "Register successful",
@@ -82,4 +79,33 @@ const loginUser = async (loginData) => {
   };
 };
 
-export { registerUser, loginUser };
+const getAllUsers = async () => {
+  const users = await findAllUsers();
+
+  if (!users) {
+    return { message: "users not found" };
+  }
+  return { message: "users", users };
+};
+
+const modifyUser = async (id, updatedData) => {
+  const updaeduser = await updateUser(id, updatedData);
+  if (!updateUser) {
+    return { message: "users not updated" };
+  }
+  return { message: "users", updaeduser };
+};
+
+const removeUser = async (id) => {
+  if (!id) {
+    return { message: "plese provide id" };
+  }
+  const user = await deleteUser(id);
+
+  if (!user) {
+    return { message: "users not found cant complete action" };
+  }
+  return { message: "users", user };
+};
+
+export { registerUser, loginUser, getAllUsers, modifyUser, removeUser };

@@ -1,4 +1,10 @@
-import { loginUser, registerUser } from "../Services/User.Service.js";
+import {
+  loginUser,
+  registerUser,
+  getAllUsers,
+  modifyUser,
+  removeUser,
+} from "../Services/User.Service.js";
 
 // Register User
 const RegisterUser = async (req, res) => {
@@ -49,4 +55,51 @@ const GetUserProfile = async (req, res) => {
   }
 };
 
-export { RegisterUser, LoginUser, GetUserProfile };
+const GetAllUsers = async (req, res) => {
+  try {
+    const result = await getAllUsers();
+    return res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Error while fetching users", error: error.message });
+  }
+};
+
+const ModifyUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await modifyUser(id, req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Error while modifying user", error: error.message });
+  }
+};
+
+const RemoveUser = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await removeUser(id);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Error while modifying user", error: error.message });
+  }
+};
+
+export {
+  RegisterUser,
+  LoginUser,
+  GetUserProfile,
+  GetAllUsers,
+  ModifyUser,
+  RemoveUser,
+};
