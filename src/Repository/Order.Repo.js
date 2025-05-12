@@ -16,4 +16,29 @@ const getOrderByUser = async (filter) => {
   return orders;
 };
 
-export { addNewOrder, getOrderByUser, findOrderById };
+// * routes for admin  findAllorders updateOrderStatus deleteOrder
+
+const findAllOrders = async () => {
+  const orders = await Order.find().populate("user", "name,email");
+  return orders;
+};
+
+const updateOrderStaus = async (id, updatedData) => {
+  const updatedOrder = await Order.findByIdAndUpdate(id, updatedData, {
+    new: true,
+  });
+  return updatedOrder;
+};
+
+const deleteOrder = async (id) => {
+  const deletedOrder = await Order.findByIdAndDelete(id);
+  return deletedOrder;
+};
+export {
+  addNewOrder,
+  getOrderByUser,
+  findOrderById,
+  findAllOrders,
+  updateOrderStaus,
+  deleteOrder,
+};
