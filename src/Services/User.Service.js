@@ -105,7 +105,7 @@ const removeUser = async (id) => {
   if (!user) {
     return { message: "users not found cant complete action" };
   }
-  return { message: "users", user };
+  return { message: "user deleted successfully", user };
 };
 
 export { registerUser, loginUser, getAllUsers, modifyUser, removeUser };

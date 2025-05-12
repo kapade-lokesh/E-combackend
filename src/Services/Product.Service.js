@@ -1,6 +1,7 @@
 import {
   addNewProduct,
   deleteProductById,
+  findAllProducts,
   findBestSeller,
   findNewArrivals,
   findProductByCustomfilter,
@@ -276,6 +277,15 @@ const getNewArrivals = async () => {
   return { message: "New Arrivals", products };
 };
 
+const getAllProducts = async () => {
+  const products = await findAllProducts();
+
+  if (!products) {
+    return { message: "Products not found" };
+  }
+
+  return { message: "Products", products };
+};
 export {
   addProduct,
   getProductById,
@@ -285,4 +295,5 @@ export {
   getSimilerProducts,
   getBestSeller,
   getNewArrivals,
+  getAllProducts,
 };

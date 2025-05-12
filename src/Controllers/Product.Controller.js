@@ -6,6 +6,7 @@ import {
   getFilteredProducts,
   getSimilerProducts,
   getBestSeller,
+  getAllProducts,
   getNewArrivals,
 } from "../Services/Product.Service.js";
 
@@ -116,6 +117,19 @@ const GetNewArrivals = async (req, res) => {
   }
 };
 
+const GetAllProducts = async (req, res) => {
+  try {
+    const result = await getAllProducts();
+    res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(error.message === "Product not found" ? 404 : 500).json({
+      message: "Error while fetching the product",
+      error: error.message,
+    });
+  }
+};
+
 export {
   AddProduct,
   GetProductById,
@@ -125,4 +139,5 @@ export {
   GetSimilerProducts,
   GetBestSeller,
   GetNewArrivals,
+  GetAllProducts,
 };

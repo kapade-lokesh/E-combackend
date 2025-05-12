@@ -34,6 +34,11 @@ const findNewArrivals = async () => {
   const products = await Product.find().sort({ createdAt: -1 }).limit(8);
   return products;
 };
+
+const findAllProducts = async () => {
+  const product = await Product.find();
+  return product;
+};
 export {
   addNewProduct,
   findProductById,
@@ -42,4 +47,5 @@ export {
   findProductByCustomfilter,
   findBestSeller,
   findNewArrivals,
+  findAllProducts,
 };
