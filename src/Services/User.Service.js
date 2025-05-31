@@ -46,7 +46,7 @@ const registerUser = async (userData) => {
 };
 
 const loginUser = async (loginData) => {
-  const { email, password } = loginData; // Removed unused 'name'
+  const { email, password } = loginData;  
 
   // Check if user exists
   const user = await findUserByEmailWithPassword(email);

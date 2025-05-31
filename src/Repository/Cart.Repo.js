@@ -11,9 +11,12 @@ const findCartByUserId = async (id) => {
   const { userId, guestId } = id;
 
   if (userId) {
+    console.log("calling with user id");
     return await Cart.findOne({ user: userId });
   } else {
-    return await Cart.findOne({ guestId });
+    const data = await Cart.findOne({ guestId: guestId });
+
+    return data;
   }
 };
 

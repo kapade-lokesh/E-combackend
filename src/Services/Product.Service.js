@@ -148,7 +148,7 @@ const deleteProduct = async (id) => {
 const getFilteredProducts = async (query) => {
   const {
     collection,
-    size,
+    sizes,
     color,
     gender,
     minPrice,
@@ -180,12 +180,14 @@ const getFilteredProducts = async (query) => {
     filteredQuery.brand = { $in: brand.split(",") };
   }
 
-  if (size) {
-    filteredQuery.size = { $in: size.split(",") };
+  if (sizes) {
+    filteredQuery.sizes = { $in: sizes.split(",") };
+    console.log(filteredQuery.sizes);
   }
 
   if (color) {
     filteredQuery.colors = { $in: [color] };
+    console.log(filteredQuery.colors);
   }
 
   if (gender) {
@@ -229,6 +231,8 @@ const getFilteredProducts = async (query) => {
     }
   }
 
+  console.log(filteredQuery);
+
   //Fetch products and apply sorting and limit
   const products = await findProductByCustomfilter(filteredQuery, limit, sort);
 
@@ -243,7 +247,7 @@ const getSimilerProducts = async (params, query) => {
   console.log(query);
   const { id } = params;
   const { limit } = query;
-  console.log(limit);
+
   const product = await findProductById(id);
   if (!product) {
     throw new Error("Product not found");

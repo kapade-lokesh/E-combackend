@@ -19,7 +19,7 @@ const getCart = async (userId, guestId) => {
 
 const addCart = async (cartData) => {
   const { productId, quantity, size, color, guestId, userId } = cartData;
-
+  console.log("addtocart", guestId);
   //first find the product first
   const product = await findProductById(productId);
 
@@ -63,7 +63,7 @@ const addCart = async (cartData) => {
     console.log("totalPrice : ", typeof cart.totalPrice);
 
     await cart.save();
-    return { message: "product added to cart successfully", cart };
+    return { message: "product added to cart successfully", newcart: cart };
   } else {
     const newcart = await addNewCart({
       user: userId ? userId : undefined,
@@ -94,7 +94,7 @@ const updateCart = async (updatedData) => {
   const { userId, guestId, productId, size, color, quantity } = updatedData;
 
   let cart = await getCart(userId, guestId);
-  // console.log(cart);
+
   if (cart) {
     const productindex = cart.products.findIndex(
       (prod) =>
@@ -102,8 +102,6 @@ const updateCart = async (updatedData) => {
         prod.size === size &&
         prod.color === color
     );
-
-  
 
     //if product exist
     if (productindex > -1) {
@@ -141,6 +139,7 @@ const updateCart = async (updatedData) => {
 };
 
 const deleteCart = async (cartData) => {
+  console.log(cartData);
   const { productId, userId, guestId, size, color } = cartData;
 
   const product = await findProductById(productId);
@@ -180,10 +179,9 @@ const deleteCart = async (cartData) => {
 };
 
 const mergeCart = async (guestId, user) => {
-   
   const guestCart = await findCartByUserId(guestId);
   const userCart = await findCartByUserId({ userId: user._id });
-  
+
   if (guestCart) {
     if (guestCart.products.length < 0) {
       return { message: "cart is empty" };
