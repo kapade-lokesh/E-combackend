@@ -4,6 +4,7 @@ import {
   findCheckoutByid,
 } from "../Repository/Checkout.Repo.js";
 import { addNewOrder } from "../Repository/Order.Repo.js";
+import { razorpay } from "../Config/Rozerpayconfig.js";
 
 const addCheckOut = async (parameters, user) => {
   const { checkoutItems, shippingAddress, paymentMethod, totalPrice } =
@@ -20,7 +21,26 @@ const addCheckOut = async (parameters, user) => {
     paymentMethod,
     totalPrice,
   });
-  return { message: "checkout created sucessfullly", newCheckout };
+
+  try {
+    const order = await razorpay.orders.create({
+      amount: totalPrice * 100,
+      currency: "INR",
+      receipt: `receipt_${newCheckout._id}`,
+      notes: {
+        checkout_id: newCheckout._id.toString(),
+        user_id: user._id.toString(),
+      },
+    });
+
+    return {
+      message: "checkout created successfully",
+      newCheckout,
+      razorpayOrderId: order.id,
+    };
+  } catch (error) {
+    return { message: "Failed to create Razorpay order", error: error.message };
+  }
 };
 
 const updateCheckOut = async (parameters, params) => {
