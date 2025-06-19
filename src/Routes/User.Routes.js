@@ -1,3 +1,4 @@
+// src/Routes/User.Routes.js
 import express from "express";
 import {
   GetAllUsers,
@@ -15,11 +16,12 @@ userRoutes.route("/register").post(RegisterUser);
 userRoutes.route("/login").post(LoginUser);
 userRoutes.route("/profile").get(isLoggedin, GetUserProfile);
 
-// ! Routes For The Admin
+// Admin Routes
 userRoutes.route("/admin/getallusers").get(isLoggedin, isAdmin, GetAllUsers);
 userRoutes.route("/admin/adduser").post(isLoggedin, isAdmin, RegisterUser);
 userRoutes.route("/admin/updateuser/:id").put(isLoggedin, isAdmin, ModifyUser);
 userRoutes
   .route("/admin/deleteuser/:id")
   .delete(isLoggedin, isAdmin, RemoveUser);
+
 export { userRoutes };

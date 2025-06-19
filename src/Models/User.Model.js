@@ -7,28 +7,30 @@ const userSchema = Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Name is required"],
       trim: true,
     },
-
     email: {
       type: String,
-      required: true,
+      required: [true, "Email is required"],
+      unique: true,
       trim: true,
       match: [
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        "please enter valid email",
+        "Please enter a valid email",
       ],
     },
-
     password: {
       type: String,
-      required: true,
-      minLength: 6,
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters"],
     },
     role: {
       type: String,
-      enum: ["customer", "admin"],
+      enum: {
+        values: ["customer", "admin"],
+        message: "Role must be either 'customer' or 'admin'",
+      },
       default: "customer",
     },
   },
@@ -43,8 +45,8 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-userSchema.methods.matchPassword = async function (enterdPassword) {
-  return await bcrypt.compare(enterdPassword, this.password);
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 export const User = model("User", userSchema);

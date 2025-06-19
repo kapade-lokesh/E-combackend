@@ -9,6 +9,7 @@ import { chekcoutRoutes } from "./Routes/Checkout.Route.js";
 import { orderRoutes } from "./Routes/Order.Routes.js";
 import { uploadRoutes } from "./Routes/Upload.Routes.js";
 import { subcribeRoutes } from "./Routes/Subcribe.Routes.js";
+import errorHandler from "./Middlewares/ErrorMiddleware.js";
 const app = express();
 
 app.use(cors());
@@ -29,5 +30,8 @@ app.use("/checkout", chekcoutRoutes);
 app.use("/orders", orderRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/subscrib", subcribeRoutes);
+
+//globle error handler
+app.use(errorHandler);
 
 export { app };

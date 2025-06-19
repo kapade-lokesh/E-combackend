@@ -7,8 +7,8 @@ import {
   deleteUser,
 } from "../Repository/User.Repo.js";
 import jwt from "jsonwebtoken";
-
-// Helper function to fetch user with password for login
+import ApiResponse from "../Utils/ApiError.js";
+import ApiError from "../Utils/ApiResponse.js";
 
 const registerUser = async (userData) => {
   const { name, email, password, role } = userData;
@@ -16,7 +16,11 @@ const registerUser = async (userData) => {
   // Check if user already exists
   const existingUser = await findUserByEmail(email);
   if (existingUser) {
-    throw new Error("User Already Exists With Email");
+    throw new ApiError(
+      400,
+      "USER_EXISTS",
+      "User already exists with this email"
+    );
   }
 
   // Register logic
@@ -25,39 +29,45 @@ const registerUser = async (userData) => {
     user = await saveNewUser({ name, email, password, role });
   } catch (error) {
     if (error.name === "ValidationError") {
-      throw new Error(`Validation failed: ${error.message}`);
+      throw new ApiError(400, "VALIDATION_FAILED", error.message);
     }
-    throw new Error(`Failed to register user: ${error.message}`);
+    throw new ApiError(
+      500,
+      "REGISTRATION_FAILED",
+      `Failed to register user: ${error.message}`
+    );
   }
 
-  if (!user) {
-    throw new Error("Operation failed");
-  }
-
-  return {
-    message: "Register successful",
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
+  return new ApiResponse(
+    {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     },
-  };
+    "User registered successfully"
+  );
 };
 
 const loginUser = async (loginData) => {
-  const { email, password } = loginData;  
+  const { email, password } = loginData;
 
   // Check if user exists
   const user = await findUserByEmailWithPassword(email);
   if (!user) {
-    throw new Error("User Not Exist With Email");
+    throw new ApiError(
+      400,
+      "USER_NOT_FOUND",
+      "User does not exist with this email"
+    );
   }
 
   // Check password match
   const isPasswordCorrect = await user.matchPassword(password);
   if (!isPasswordCorrect) {
-    throw new Error("Invalid credentials");
+    throw new ApiError(400, "INVALID_CREDENTIALS", "Invalid password");
   }
 
   // Create auth token
@@ -67,45 +77,42 @@ const loginUser = async (loginData) => {
     { expiresIn: "1h" }
   );
 
-  return {
-    message: "Login successful",
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
+  return new ApiResponse(
+    {
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token,
     },
-    token,
-  };
+    "Login successful"
+  );
 };
 
 const getAllUsers = async () => {
   const users = await findAllUsers();
-
-  if (!users) {
-    return { message: "users not found" };
-  }
-  return { message: "users", users };
+  return new ApiResponse(
+    { users },
+    users.length ? "Users retrieved successfully" : "No users found"
+  );
 };
 
 const modifyUser = async (id, updatedData) => {
-  const updaeduser = await updateUser(id, updatedData);
-  if (!updateUser) {
-    return { message: "users not updated" };
+  if (!id) {
+    throw new ApiError(400, "INVALID_ID", "Please provide a valid user ID");
   }
-  return { message: "users", updaeduser };
+  const updatedUser = await updateUser(id, updatedData);
+  return new ApiResponse({ user: updatedUser }, "User updated successfully");
 };
 
 const removeUser = async (id) => {
   if (!id) {
-    return { message: "plese provide id" };
+    throw new ApiError(400, "INVALID_ID", "Please provide a valid user ID");
   }
   const user = await deleteUser(id);
-
-  if (!user) {
-    return { message: "users not found cant complete action" };
-  }
-  return { message: "user deleted successfully", user };
+  return new ApiResponse({ user }, "User deleted successfully");
 };
 
 export { registerUser, loginUser, getAllUsers, modifyUser, removeUser };
