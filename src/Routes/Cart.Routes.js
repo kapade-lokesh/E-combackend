@@ -1,3 +1,4 @@
+// src/Routes/Cart.Routes.js
 import express from "express";
 import {
   AddCart,
@@ -11,9 +12,9 @@ import { isLoggedin } from "../Middlewares/AuthMiddleware.js";
 const cartRoutes = express.Router();
 
 cartRoutes.route("/create").post(AddCart);
-cartRoutes.route("/getcart").get(GetCart);
-cartRoutes.route("/updatecart").put(UpdateCart);
-cartRoutes.route("/mergecart").post(isLoggedin, MergeCart);
-cartRoutes.route("/deletecart").delete(DeleteCart);
+cartRoutes.route("/get").get(GetCart);
+cartRoutes.route("/update").put(UpdateCart);
+cartRoutes.route("/merge").post(isLoggedin, MergeCart);
+cartRoutes.route("/delete").delete(DeleteCart);
 
 export { cartRoutes };

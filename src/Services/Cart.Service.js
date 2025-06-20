@@ -1,3 +1,4 @@
+// src/Services/Cart.Service.js
 import {
   addNewCart,
   deleteCartById,
@@ -5,226 +6,216 @@ import {
   updateCartById,
 } from "../Repository/Cart.Repo.js";
 import { findProductById } from "../Repository/Product.Repo.js";
+import ApiResponse from "../utils/ApiResponse.js";
+import ApiError from "../utils/ApiError.js";
 
-//helper function to get the cart
 const getCart = async (userId, guestId) => {
-  if (userId) {
-    return await findCartByUserId({ userId });
-  } else if (guestId) {
-    return await findCartByUserId({ guestId });
-  } else {
-    return null;
+  const cart = await findCartByUserId({ userId, guestId });
+  if (!cart) {
+    throw new ApiError(404, "CART_NOT_FOUND", "Cart not found");
   }
+  return new ApiResponse({ cart }, "Cart retrieved successfully");
 };
 
 const addCart = async (cartData) => {
   const { productId, quantity, size, color, guestId, userId } = cartData;
-  console.log("addtocart", guestId);
-  //first find the product first
+
+  if (!productId || !quantity || !size || !color || (!userId && !guestId)) {
+    throw new ApiError(400, "MISSING_FIELDS", "Required fields are missing");
+  }
+
+  if (quantity < 1) {
+    throw new ApiError(400, "INVALID_QUANTITY", "Quantity must be at least 1");
+  }
+
   const product = await findProductById(productId);
+  let cart = await findCartByUserId({ userId, guestId });
 
-  if (!product) {
-    throw { message: "product not found" };
-  }
-
-  //determine whether user is logged-in or guest
-  let cart = await getCart(userId, guestId);
-  console.log(cart);
-  //if the cart exist update it
   if (cart) {
-    const productindex = cart.products.findIndex(
+    const productIndex = cart.products.findIndex(
       (prod) =>
         prod.productId.toString() === productId &&
         prod.size === size &&
         prod.color === color
     );
 
-    //if product already exist in cart just increase the qyantity
-    if (productindex > -1) {
-      cart.products[productindex].quantity = Number(quantity);
+    if (productIndex > -1) {
+      cart.products[productIndex].quantity = Number(quantity);
     } else {
-      //add new product
       cart.products.push({
         productId,
         name: product.name,
-        image: product.images[0].url,
+        image: product.images[0]?.url,
         price: product.price,
         size,
         color,
-        quantity,
+        quantity: Number(quantity),
       });
     }
 
-    //Recalculate total price
-    cart.totalPrice = cart.products.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
-    );
-    console.log("totalPrice : ", typeof cart.totalPrice);
-
-    await cart.save();
-    return { message: "product added to cart successfully", newcart: cart };
-  } else {
-    const newcart = await addNewCart({
-      user: userId ? userId : undefined,
-      guestId: guestId ? guestId : "guest" + new Date().getTime(),
-      products: [
-        {
-          productId,
-          name: product.name,
-          image: product.images[0].url,
-          price: product.price,
-          size,
-          color,
-          quantity,
-        },
-      ],
-
-      totalPrice: Number(product.price * quantity),
-    });
-
-    if (!newcart) {
-      throw new Error({ message: "cart not created" });
-    }
-    return { message: "cart Created", newcart };
-  }
-};
-
-const updateCart = async (updatedData) => {
-  const { userId, guestId, productId, size, color, quantity } = updatedData;
-
-  let cart = await getCart(userId, guestId);
-
-  if (cart) {
-    const productindex = cart.products.findIndex(
-      (prod) =>
-        prod.productId.toString() === productId &&
-        prod.size === size &&
-        prod.color === color
-    );
-
-    //if product exist
-    if (productindex > -1) {
-      if (quantity > 0) {
-        console.log(quantity);
-        cart.products[productindex].quantity = Number(quantity);
-      } else {
-        cart.products.splice(productindex, 1);
-      }
-    } else {
-      const product = await findProductById(productId);
-      cart.products.push({
-        productId,
-        name: product.name,
-        image: product.images[0].url,
-        price: product.price,
-        size,
-        color,
-        quantity,
-      });
-    }
-
-    //Recalculate total price
     cart.totalPrice = cart.products.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0
     );
 
     const updatedCart = await updateCartById(cart._id, cart);
-    if (!updatedCart) {
-      throw new Error({ message: "can not update cart" });
-    }
-    return updatedCart;
+    return new ApiResponse(
+      { cart: updatedCart },
+      "Product added to cart successfully"
+    );
+  } else {
+    const newCart = await addNewCart({
+      user: userId || undefined,
+      guestId: guestId || `guest_${Date.now()}`,
+      products: [
+        {
+          productId,
+          name: product.name,
+          image: product.images[0]?.url,
+          price: product.price,
+          size,
+          color,
+          quantity: Number(quantity),
+        },
+      ],
+      totalPrice: Number(product.price * quantity),
+    });
+
+    return new ApiResponse({ cart: newCart }, "Cart created successfully");
   }
 };
 
-const deleteCart = async (cartData) => {
-  console.log(cartData);
-  const { productId, userId, guestId, size, color } = cartData;
+const updateCart = async (updatedData) => {
+  const { userId, guestId, productId, size, color, quantity } = updatedData;
 
+  if (!productId || !size || !color || (!userId && !guestId)) {
+    throw new ApiError(400, "MISSING_FIELDS", "Required fields are missing");
+  }
+
+  const cart = await findCartByUserId({ userId, guestId });
   const product = await findProductById(productId);
 
-  if (!product) {
-    throw new Error({ message: "product not found" });
-  }
-
-  const cart = await getCart(userId, guestId);
-
-  if (!cart) {
-    throw new Error({ message: "cart not found" });
-  }
-
-  const productindex = cart.products.findIndex(
+  const productIndex = cart.products.findIndex(
     (prod) =>
       prod.productId.toString() === productId &&
       prod.size === size &&
       prod.color === color
   );
 
-  console.log("product index", productindex);
-
-  if (productindex > -1) {
-    cart.products.splice(productindex, 1);
-
-    cart.totalPrice = cart.products.reduce(
-      (acc, item) => acc + Number(item.price * item.quantity),
-      0
-    );
-
-    await cart.save();
-    return { message: "product in cart removed", cart };
+  if (productIndex > -1) {
+    if (quantity > 0) {
+      cart.products[productIndex].quantity = Number(quantity);
+    } else {
+      cart.products.splice(productIndex, 1);
+    }
   } else {
-    return { message: "product not found in cart" };
+    cart.products.push({
+      productId,
+      name: product.name,
+      image: product.images[0]?.url,
+      price: product.price,
+      size,
+      color,
+      quantity: Number(quantity),
+    });
   }
+
+  cart.totalPrice = cart.products.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
+
+  const updatedCart = await updateCartById(cart._id, cart);
+  return new ApiResponse({ cart: updatedCart }, "Cart updated successfully");
+};
+
+const deleteCart = async (cartData) => {
+  const { productId, userId, guestId, size, color } = cartData;
+
+  if (!productId || !size || !color || (!userId && !guestId)) {
+    throw new ApiError(400, "MISSING_FIELDS", "Required fields are missing");
+  }
+
+  await findProductById(productId); // Validates product
+  const cart = await findCartByUserId({ userId, guestId });
+
+  const productIndex = cart.products.findIndex(
+    (prod) =>
+      prod.productId.toString() === productId &&
+      prod.size === size &&
+      prod.color === color
+  );
+
+  if (productIndex === -1) {
+    throw new ApiError(404, "PRODUCT_NOT_IN_CART", "Product not found in cart");
+  }
+
+  cart.products.splice(productIndex, 1);
+  cart.totalPrice = cart.products.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0
+  );
+
+  const updatedCart = await updateCartById(cart._id, cart);
+  return new ApiResponse(
+    { cart: updatedCart },
+    "Product removed from cart successfully"
+  );
 };
 
 const mergeCart = async (guestId, user) => {
-  const guestCart = await findCartByUserId(guestId);
-  const userCart = await findCartByUserId({ userId: user._id });
+  if (!guestId || !user?._id) {
+    throw new ApiError(
+      400,
+      "MISSING_FIELDS",
+      "Guest ID and user ID are required"
+    );
+  }
 
-  if (guestCart) {
-    if (guestCart.products.length < 0) {
-      return { message: "cart is empty" };
-    }
+  const guestCart = await findCartByUserId({ guestId });
+  let userCart = await findCartByUserId({ userId: user._id });
 
+  if (!guestCart) {
     if (userCart) {
-      guestCart.products.forEach((guestItem) => {
-        const productindex = userCart.products.findIndex(
-          (userItem) =>
-            userItem.productId.toString() === guestItem.productId.toString() &&
-            userItem.size === guestItem.size &&
-            userItem.color === guestItem.color
-        );
+      return new ApiResponse({ cart: userCart }, "User already has a cart");
+    }
+    throw new ApiError(404, "GUEST_CART_NOT_FOUND", "Guest cart not found");
+  }
 
-        if (productindex > -1) {
-          userCart.products[productindex].quantity += guestItem.quantity;
-        } else {
-          userCart.products.push(guestItem);
-        }
-      });
+  if (!guestCart.products.length) {
+    await deleteCartById(guestCart._id);
+    return new ApiResponse({ cart: userCart || null }, "Guest cart was empty");
+  }
 
-      userCart.totalPrice = userCart.products.reduce(
-        (acc, item) => acc + item.price * item.quantity,
-        0
+  if (userCart) {
+    guestCart.products.forEach((guestItem) => {
+      const productIndex = userCart.products.findIndex(
+        (userItem) =>
+          userItem.productId.toString() === guestItem.productId.toString() &&
+          userItem.size === guestItem.size &&
+          userItem.color === guestItem.color
       );
 
-      await userCart.save();
+      if (productIndex > -1) {
+        userCart.products[productIndex].quantity += guestItem.quantity;
+      } else {
+        userCart.products.push(guestItem);
+      }
+    });
 
-      //removing the guest cart using guestId after sucessfull merge
-      await deleteCartById(guestCart._id);
-      return { message: "cart merge sucessfully", userCart };
-    } else {
-      guestCart.user = user._id;
-      guestCart.guestId = undefined;
-      await guestCart.save();
-      return { message: "cart merge sucessfully", guestCart };
-    }
+    userCart.totalPrice = userCart.products.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+
+    const updatedCart = await updateCartById(userCart._id, userCart);
+    await deleteCartById(guestCart._id);
+    return new ApiResponse({ cart: updatedCart }, "Cart merged successfully");
   } else {
-    if (userCart) {
-      return { message: "alredy have a cart", userCart };
-    }
-
-    return { message: "guest cart was not found" };
+    guestCart.user = user._id;
+    guestCart.guestId = undefined;
+    const updatedCart = await updateCartById(guestCart._id, guestCart);
+    return new ApiResponse({ cart: updatedCart }, "Cart merged successfully");
   }
 };
 
