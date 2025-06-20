@@ -1,62 +1,51 @@
+// src/Controllers/Order.Controller.js
 import {
+  addOrder,
   getUserOrders,
-  getOrderByID,
-  getallOrders,
+  getOrderById,
+  getAllOrders,
   modifyOrder,
   removeOrder,
 } from "../Services/Order.Service.js";
 
-const GetUserOrders = async (req, res) => {
-  try {
-    const result = await getUserOrders(req.user);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json(error);
-  }
+const AddOrder = async (req, res) => {
+  const result = await addOrder(req.body, req.user);
+  res.status(201).json(result);
 };
 
-const GetOrderByID = async (req, res) => {
-  try {
-    const result = await getOrderByID(req.params.id);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json(error);
-  }
+const GetUserOrders = async (req, res) => {
+  const result = await getUserOrders(req.user);
+  res.status(200).json(result);
+};
+
+const GetOrderById = async (req, res) => {
+  const { id } = req.params;
+  const result = await getOrderById(id);
+  res.status(200).json(result);
 };
 
 const GetAllOrders = async (req, res) => {
-  try {
-    const result = await getallOrders();
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json(error);
-  }
+  const result = await getAllOrders();
+  res.status(200).json(result);
 };
 
 const ModifyOrder = async (req, res) => {
   const { id } = req.params;
-
-  try {
-    const result = await modifyOrder(id, req.body);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json(error);
-  }
+  const result = await modifyOrder(id, req.body);
+  res.status(200).json(result);
 };
 
 const RemoveOrder = async (req, res) => {
   const { id } = req.params;
-
-  try {
-    const result = await removeOrder(id);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json(error);
-  }
+  const result = await removeOrder(id);
+  res.status(200).json(result);
 };
-export { GetUserOrders, GetOrderByID, GetAllOrders, ModifyOrder, RemoveOrder };
+
+export {
+  AddOrder,
+  GetUserOrders,
+  GetOrderById,
+  GetAllOrders,
+  ModifyOrder,
+  RemoveOrder,
+};
