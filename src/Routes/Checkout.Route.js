@@ -1,15 +1,16 @@
+// src/Routes/Checkout.Routes.js
 import express from "express";
 import {
   AddCheckout,
-  FinalizeCheckout,
   UpdateCheckout,
+  FinalizeCheckout,
 } from "../Controllers/Checkout.Controller.js";
 import { isLoggedin } from "../Middlewares/AuthMiddleware.js";
 
-const chekcoutRoutes = express.Router();
+const checkoutRoutes = express.Router();
 
-chekcoutRoutes.route("/create").post(isLoggedin, AddCheckout);
-chekcoutRoutes.route("/update/:id").put(isLoggedin, UpdateCheckout);
-chekcoutRoutes.route("/finalize/:id").post(isLoggedin, FinalizeCheckout);
+checkoutRoutes.route("/create").post(isLoggedin, AddCheckout);
+checkoutRoutes.route("/update/:id").put(isLoggedin, UpdateCheckout);
+checkoutRoutes.route("/finalize/:id").post(isLoggedin, FinalizeCheckout);
 
-export { chekcoutRoutes };
+export { checkoutRoutes };

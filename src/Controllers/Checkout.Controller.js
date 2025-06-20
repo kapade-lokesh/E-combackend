@@ -1,40 +1,23 @@
+// src/Controllers/Checkout.Controller.js
 import {
-  addCheckOut,
-  updateCheckOut,
+  addCheckout,
+  updateCheckout,
   finalizeCheckout,
 } from "../Services/Checkout.Service.js";
 
 const AddCheckout = async (req, res) => {
-  try {
-    const result = await addCheckOut(req.body, req.user);
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json(error);
-  }
+  const result = await addCheckout(req.body, req.user);
+  res.status(201).json(result);
 };
 
 const UpdateCheckout = async (req, res) => {
-  try {
-    const result = await updateCheckOut(req.body, req.params);
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json(error);
-  }
+  const result = await updateCheckout(req.body, req.params);
+  res.status(200).json(result);
 };
 
 const FinalizeCheckout = async (req, res) => {
-  try {
-    const result = await finalizeCheckout(req.params);
-
-    return res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json(error);
-  }
+  const result = await finalizeCheckout(req.params);
+  res.status(200).json(result);
 };
 
 export { AddCheckout, UpdateCheckout, FinalizeCheckout };

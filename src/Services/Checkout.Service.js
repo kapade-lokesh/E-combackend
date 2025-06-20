@@ -1,17 +1,25 @@
-import { deleteCartByField } from "../Repository/Cart.Repo.js";
+// src/Services/Checkout.Service.js
+import { deleteCartById } from "../Repository/Cart.Repo.js";
 import {
   addNewCheckout,
-  findCheckoutByid,
+  findCheckoutById,
 } from "../Repository/Checkout.Repo.js";
 import { addNewOrder } from "../Repository/Order.Repo.js";
-import { razorpay } from "../Config/Rozerpayconfig.js";
+import { razorpay } from "../Config/RazorpayConfig.js";
+import ApiResponse from "../Utils/ApiResponse.js";
+import ApiError from "../utils/ApiError.js";
 
-const addCheckOut = async (parameters, user) => {
+const addCheckout = async (parameters, user) => {
   const { checkoutItems, shippingAddress, paymentMethod, totalPrice } =
     parameters;
 
-  if (!checkoutItems || checkoutItems.length < 0) {
-    return { message: "no checkout-items provided" };
+  if (
+    !checkoutItems?.length ||
+    !shippingAddress ||
+    !paymentMethod ||
+    !totalPrice
+  ) {
+    throw new ApiError(400, "MISSING_FIELDS", "Required fields are missing");
   }
 
   const newCheckout = await addNewCheckout({
@@ -24,7 +32,7 @@ const addCheckOut = async (parameters, user) => {
 
   try {
     const order = await razorpay.orders.create({
-      amount: totalPrice * 100,
+      amount: totalPrice * 100, // Convert to paise
       currency: "INR",
       receipt: `receipt_${newCheckout._id}`,
       notes: {
@@ -33,71 +41,92 @@ const addCheckOut = async (parameters, user) => {
       },
     });
 
-    return {
-      message: "checkout created successfully",
-      newCheckout,
-      razorpayOrderId: order.id,
-    };
+    return new ApiResponse(
+      { checkout: newCheckout, razorpayOrderId: order.id },
+      "Checkout created successfully"
+    );
   } catch (error) {
-    return { message: "Failed to create Razorpay order", error: error.message };
+    await Checkout.findByIdAndDelete(newCheckout._id); // Rollback on Razorpay failure
+    throw new ApiError(
+      500,
+      "RAZORPAY_FAILED",
+      `Failed to create Razorpay order: ${error.message}`
+    );
   }
 };
 
-const updateCheckOut = async (parameters, params) => {
+const updateCheckout = async (parameters, params) => {
   const { paymentStatus, paymentDetails } = parameters;
   const { id } = params;
 
-  const checkout = await findCheckoutByid(id);
-
-  if (!checkout) {
-    return { message: "chekcout is not found" };
+  if (!paymentStatus) {
+    throw new ApiError(400, "MISSING_FIELDS", "Payment status is required");
   }
 
-  if (paymentStatus === "paid") {
-    (checkout.isPaid = true),
-      (checkout.paymentStatus = paymentStatus),
-      (checkout.paymentDetails = paymentDetails),
-      (checkout.paidAt = Date.now());
+  const validStatuses = ["Pending", "Completed", "Failed"];
+  if (!validStatuses.includes(paymentStatus)) {
+    throw new ApiError(400, "INVALID_STATUS", "Invalid payment status");
+  }
+
+  const checkout = await findCheckoutById(id);
+
+  if (paymentStatus === "Completed") {
+    checkout.isPaid = true;
+    checkout.paymentStatus = paymentStatus;
+    checkout.paymentDetails = paymentDetails;
+    checkout.paidAt = new Date();
+  } else {
+    checkout.paymentStatus = paymentStatus;
+    checkout.paymentDetails = paymentDetails;
   }
 
   await checkout.save();
 
-  return { message: "chekcout updated sucessfuly", checkout };
+  return new ApiResponse({ checkout }, "Checkout updated successfully");
 };
 
 const finalizeCheckout = async (params) => {
   const { id } = params;
 
-  const checkout = await findCheckoutByid(id);
+  const checkout = await findCheckoutById(id);
 
-  if (!checkout) {
-    return { message: "chekcout is not found" };
+  if (checkout.isFinalized) {
+    throw new ApiError(400, "ALREADY_FINALIZED", "Checkout already finalized");
   }
 
-  if (checkout.isPaid && !checkout.isFinalized) {
-    const finalOrder = await addNewOrder({
-      user: checkout.user,
-      orderItems: checkout.checkoutItems,
-      shippingAddress: checkout.shippingAddress,
-      paymentMethod: checkout.paymentMethod,
-      totalPrice: checkout.totalPrice,
-      isPaid: true,
-      paidAt: checkout.paidAt,
-      isDelivered: false,
-      patmentStatus: "paid",
-      paymentDetails: checkout.paymentDetails,
-    });
-
-    checkout.isFinalized = true;
-    checkout.finalizedAt = Date.now();
-    await checkout.save();
-    await deleteCartByField({ user: checkout.user });
-
-    return { message: "final order", finalOrder };
-  } else if (checkout.isFinalized) {
-    return { message: "checkout already finalized", checkout };
-  } else {
-    return { message: "checkout is not paid", checkout };
+  if (!checkout.isPaid) {
+    throw new ApiError(400, "NOT_PAID", "Checkout is not paid");
   }
+
+  const order = await addNewOrder({
+    user: checkout.user,
+    orderItems: checkout.checkoutItems.map((item) => ({
+      productId: item.productId,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      size: item.size,
+      color: item.color,
+    })),
+    shippingAddress: checkout.shippingAddress,
+    paymentMethod: checkout.paymentMethod,
+    totalPrice: checkout.totalPrice,
+    isPaid: true,
+    paidAt: checkout.paidAt,
+    paymentStatus: "Completed",
+    paymentDetails: checkout.paymentDetails,
+  });
+
+  checkout.isFinalized = true;
+  checkout.finalizedAt = new Date();
+  await checkout.save();
+
+  await deleteCartById(checkout.user); // Clear user cart
+
+  return new ApiResponse(
+    { order },
+    "Checkout finalized and order created successfully"
+  );
 };
-export { addCheckOut, updateCheckOut, finalizeCheckout };
+
+export { addCheckout, updateCheckout, finalizeCheckout };
