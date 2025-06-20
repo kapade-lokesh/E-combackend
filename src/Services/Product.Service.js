@@ -1,3 +1,4 @@
+// src/Services/Product.Service.js
 import {
   addNewProduct,
   deleteProductById,
@@ -8,6 +9,8 @@ import {
   findProductById,
   updateProductById,
 } from "../Repository/Product.Repo.js";
+import ApiResponse from "../Utils/ApiResponse.js";
+import ApiError from "../Utils/ApiError.js";
 
 const addProduct = async (productData, userData) => {
   const {
@@ -27,14 +30,30 @@ const addProduct = async (productData, userData) => {
     isFeatured,
     isPublished,
     tags,
-    dimenstions,
+    dimensions,
     weight,
     sku,
   } = productData;
 
-  // Validate required fields (example)
-  if (!name || !price || !countInStock) {
-    throw new Error("Name, price, and countInStock are required");
+  if (
+    !name ||
+    !price ||
+    !countInStock ||
+    !category ||
+    !sizes ||
+    !colors ||
+    !collections ||
+    !sku
+  ) {
+    throw new ApiError(400, "MISSING_FIELDS", "Required fields are missing");
+  }
+
+  if (price < 0 || discountPrice < 0 || countInStock < 0) {
+    throw new ApiError(
+      400,
+      "INVALID_VALUES",
+      "Price, discount price, or stock cannot be negative"
+    );
   }
 
   const product = await addNewProduct({
@@ -54,21 +73,18 @@ const addProduct = async (productData, userData) => {
     isFeatured,
     isPublished,
     tags,
-    dimenstions,
+    dimensions,
     weight,
     sku,
     user: userData._id,
   });
 
-  return { message: "Product added successfully", product };
+  return new ApiResponse({ product }, "Product added successfully");
 };
 
 const getProductById = async (id) => {
   const product = await findProductById(id);
-  if (!product) {
-    throw new Error("Product not found");
-  }
-  return { message: "Product found", product };
+  return new ApiResponse({ product }, "Product retrieved successfully");
 };
 
 const updateProduct = async (id, updateData) => {
@@ -89,17 +105,17 @@ const updateProduct = async (id, updateData) => {
     isFeatured,
     isPublished,
     tags,
-    dimenstions,
+    dimensions,
     weight,
     sku,
   } = updateData;
 
-  // Validate updates (example)
-  if (countInStock && countInStock < 0) {
-    throw new Error("Count in stock cannot be negative");
-  }
-  if (price && price < 0) {
-    throw new Error("Price cannot be negative");
+  if (countInStock < 0 || price < 0 || discountPrice < 0) {
+    throw new ApiError(
+      400,
+      "INVALID_VALUES",
+      "Price, discount price, or stock cannot be negative"
+    );
   }
 
   const product = await updateProductById(id, {
@@ -119,30 +135,17 @@ const updateProduct = async (id, updateData) => {
     isFeatured,
     isPublished,
     tags,
-    dimenstions,
+    dimensions,
     weight,
     sku,
   });
 
-  if (!product) {
-    throw new Error("Product not found");
-  }
-
-  return { message: "Product updated successfully", product };
+  return new ApiResponse({ product }, "Product updated successfully");
 };
 
 const deleteProduct = async (id) => {
-  if (!id) {
-    throw new Error("id not found");
-  }
-
   const product = await deleteProductById(id);
-
-  if (!product) {
-    throw new Error("Product Not Delete");
-  }
-
-  return { message: "Product deleted successfully", product };
+  return new ApiResponse({ product }, "Product deleted successfully");
 };
 
 const getFilteredProducts = async (query) => {
@@ -163,12 +166,11 @@ const getFilteredProducts = async (query) => {
 
   let filteredQuery = {};
 
-  // filter logic
-  if (collection && collection.toLocaleLowerCase() !== "all") {
+  if (collection && collection.toLowerCase() !== "all") {
     filteredQuery.collections = collection;
   }
 
-  if (category && category.toLocaleLowerCase() !== "all") {
+  if (category && category.toLowerCase() !== "all") {
     filteredQuery.category = category;
   }
 
@@ -182,12 +184,10 @@ const getFilteredProducts = async (query) => {
 
   if (sizes) {
     filteredQuery.sizes = { $in: sizes.split(",") };
-    console.log(filteredQuery.sizes);
   }
 
   if (color) {
     filteredQuery.colors = { $in: [color] };
-    console.log(filteredQuery.colors);
   }
 
   if (gender) {
@@ -196,12 +196,8 @@ const getFilteredProducts = async (query) => {
 
   if (minPrice || maxPrice) {
     filteredQuery.price = {};
-    if (minPrice) {
-      filteredQuery.price.$gte = Number(minPrice);
-    }
-    if (maxPrice) {
-      filteredQuery.price.$lte = Number(maxPrice);
-    }
+    if (minPrice) filteredQuery.price.$gte = Number(minPrice);
+    if (maxPrice) filteredQuery.price.$lte = Number(maxPrice);
   }
 
   if (search) {
@@ -217,86 +213,72 @@ const getFilteredProducts = async (query) => {
       case "priceAsc":
         sort = { price: 1 };
         break;
-
       case "priceDesc":
         sort = { price: -1 };
         break;
-
       case "popularity":
         sort = { rating: -1 };
         break;
-
       default:
         break;
     }
   }
 
-  console.log(filteredQuery);
-
-  //Fetch products and apply sorting and limit
   const products = await findProductByCustomfilter(filteredQuery, limit, sort);
-
-  if (!products) {
-    throw new Error("Products not Found");
-  }
-
-  return { message: "Product fetched successfully", products };
+  return new ApiResponse(
+    { products },
+    products.length ? "Products retrieved successfully" : "No products found"
+  );
 };
 
-const getSimilerProducts = async (params, query) => {
-  console.log(query);
+const getSimilarProducts = async (params, query) => {
   const { id } = params;
   const { limit } = query;
 
   const product = await findProductById(id);
-  if (!product) {
-    throw new Error("Product not found");
-  }
-
   const filterObj = {
     _id: { $ne: id },
     gender: product.gender,
     category: product.category,
   };
 
-  const similerProducts = await findProductByCustomfilter(filterObj, limit);
-  return { message: "Similer Products", similerProducts };
+  const products = await findProductByCustomfilter(filterObj, limit);
+  return new ApiResponse(
+    { products },
+    "Similar products retrieved successfully"
+  );
 };
 
 const getBestSeller = async () => {
   const product = await findBestSeller();
-  console.log(product);
-  if (!product) {
-    throw new Error("Product not found");
-  }
-  return { message: "Best seller", product };
+  return new ApiResponse({ product }, "Best seller retrieved successfully");
 };
 
 const getNewArrivals = async () => {
   const products = await findNewArrivals();
-  if (!products) {
-    throw new Error("Product not found");
-  }
-
-  return { message: "New Arrivals", products };
+  return new ApiResponse(
+    { products },
+    products.length
+      ? "New arrivals retrieved successfully"
+      : "No new arrivals found"
+  );
 };
 
 const getAllProducts = async () => {
   const products = await findAllProducts();
-
-  if (!products) {
-    return { message: "Products not found" };
-  }
-
-  return { message: "Products", products };
+  return new ApiResponse(
+    { products },
+    products.length ? "Products retrieved successfully" : "No products found"
+  );
 };
+
 export {
   addProduct,
   getProductById,
   updateProduct,
   deleteProduct,
   getFilteredProducts,
-  getSimilerProducts,
+  getSimilarProducts,
   getBestSeller,
   getNewArrivals,
   getAllProducts,

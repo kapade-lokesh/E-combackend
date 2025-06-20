@@ -1,133 +1,62 @@
+// src/Controllers/Product.Controller.js
 import {
   addProduct,
   getProductById,
   updateProduct,
   deleteProduct,
   getFilteredProducts,
-  getSimilerProducts,
+  getSimilarProducts,
   getBestSeller,
-  getAllProducts,
   getNewArrivals,
+  getAllProducts,
 } from "../Services/Product.Service.js";
 
-// Add a Product (Admin only, protected route)
 const AddProduct = async (req, res) => {
-  try {
-    const result = await addProduct(req.body, req.user);
-    res.status(201).json(result);
-  } catch (error) {
-    console.error("Error adding product:", error.message);
-    res
-      .status(500)
-      .json({ message: "Error adding product", error: error.message });
-  }
+  const result = await addProduct(req.body, req.user);
+  res.status(201).json(result);
 };
 
-// Get a Product by ID (Public route)
 const GetProductById = async (req, res) => {
-  try {
-    const result = await getProductById(req.params.id);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error retrieving product:", error.message);
-    res.status(error.message === "Product not found" ? 404 : 500).json({
-      message: "Error retrieving product",
-      error: error.message,
-    });
-  }
+  const { id } = req.params;
+  const result = await getProductById(id);
+  res.status(200).json(result);
 };
 
-// Update a Product (Admin only, protected route)
 const UpdateProduct = async (req, res) => {
-  try {
-    const result = await updateProduct(req.params.id, req.body);
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error updating product:", error.message);
-    res.status(error.message === "Product not found" ? 404 : 500).json({
-      message: "Error updating product",
-      error: error.message,
-    });
-  }
+  const { id } = req.params;
+  const result = await updateProduct(id, req.body);
+  res.status(200).json(result);
 };
 
-// Update a Product (Admin only, protected route)
 const DeleteProduct = async (req, res) => {
-  try {
-    const result = await deleteProduct(req.params.id);
-    res.status(200).json(result);
-  } catch (error) {
-    console.log("Error while deleting product", error.message);
-    res.status(error.message === "product not found" ? 404 : 500).json({
-      message: "Error while deleting the product",
-      error: error.message,
-    });
-  }
+  const { id } = req.params;
+  const result = await deleteProduct(id);
+  res.status(200).json(result);
 };
 
 const GetFilteredProducts = async (req, res) => {
-  try {
-    const result = await getFilteredProducts(req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    console.log("Error while deleting product", error.message);
-    res.status(error.message === "product not found" ? 404 : 500).json({
-      message: "Error while fetching the product",
-      error: error.message,
-    });
-  }
+  const result = await getFilteredProducts(req.query);
+  res.status(200).json(result);
 };
 
-const GetSimilerProducts = async (req, res) => {
-  try {
-    const result = await getSimilerProducts(req.params, req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(error.message === "product not found" ? 404 : 500).json({
-      message: "Error while fetching the product",
-      error: error.message,
-    });
-  }
+const GetSimilarProducts = async (req, res) => {
+  const result = await getSimilarProducts(req.params, req.query);
+  res.status(200).json(result);
 };
 
 const GetBestSeller = async (req, res) => {
-  try {
-    const result = await getBestSeller();
-    res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(error.message === "Product not found" ? 404 : 500).json({
-      message: "Error while fetching the product",
-      error: error.message,
-    });
-  }
+  const result = await getBestSeller();
+  res.status(200).json(result);
 };
 
 const GetNewArrivals = async (req, res) => {
-  try {
-    const result = await getNewArrivals();
-    res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(error.message === "Product not found" ? 404 : 500).json({
-      message: "Error while fetching the product",
-      error: error.message,
-    });
-  }
+  const result = await getNewArrivals();
+  res.status(200).json(result);
 };
 
 const GetAllProducts = async (req, res) => {
-  try {
-    const result = await getAllProducts();
-    res.status(200).json(result);
-  } catch (error) {
-    console.log(error);
-    res.status(error.message === "Product not found" ? 404 : 500).json({
-      message: "Error while fetching the product",
-      error: error.message,
-    });
-  }
+  const result = await getAllProducts();
+  res.status(200).json(result);
 };
 
 export {
@@ -136,7 +65,7 @@ export {
   UpdateProduct,
   DeleteProduct,
   GetFilteredProducts,
-  GetSimilerProducts,
+  GetSimilarProducts,
   GetBestSeller,
   GetNewArrivals,
   GetAllProducts,

@@ -1,3 +1,4 @@
+// src/Routes/Product.Routes.js
 import express from "express";
 import {
   AddProduct,
@@ -5,7 +6,7 @@ import {
   DeleteProduct,
   GetProductById,
   GetFilteredProducts,
-  GetSimilerProducts,
+  GetSimilarProducts,
   GetBestSeller,
   GetNewArrivals,
   GetAllProducts,
@@ -14,21 +15,14 @@ import { isLoggedin, isAdmin } from "../Middlewares/AuthMiddleware.js";
 
 const productRoutes = express.Router();
 
-productRoutes.route("/createproduct").post(isLoggedin, isAdmin, AddProduct);
-
+productRoutes.route("/create").post(isLoggedin, isAdmin, AddProduct);
 productRoutes.route("/update/:id").put(isLoggedin, isAdmin, UpdateProduct);
-
 productRoutes.route("/delete/:id").delete(isLoggedin, isAdmin, DeleteProduct);
+productRoutes.route("/filter").get(GetFilteredProducts);
+productRoutes.route("/similar/:id").get(GetSimilarProducts);
+productRoutes.route("/get/:id").get(GetProductById);
+productRoutes.route("/bestseller").get(GetBestSeller);
+productRoutes.route("/newarrivals").get(GetNewArrivals);
+productRoutes.route("/all").get(isLoggedin, isAdmin, GetAllProducts);
 
-productRoutes.route("/getfilterproducts/").get(GetFilteredProducts);
-
-productRoutes.route("/getsimilerproducts/:id").get(GetSimilerProducts);
-
-productRoutes.route("/getproduct/:id").get(GetProductById);
-
-productRoutes.route("/getbestseller").get(GetBestSeller);
-
-productRoutes.route("/getnewarrivals").get(GetNewArrivals);
-
-productRoutes.route("/getallproducts").get(isLoggedin, isAdmin, GetAllProducts);
 export { productRoutes };
