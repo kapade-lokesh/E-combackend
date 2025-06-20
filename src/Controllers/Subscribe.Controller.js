@@ -1,26 +1,19 @@
+// src/Controllers/Subscribe.Controller.js
 import {
   createSubscriber,
-  getSubcribedUser,
+  getSubscribedUser,
 } from "../Services/Subscribe.Service.js";
 
 const CreateSubscriber = async (req, res) => {
   const { email } = req.body;
-  try {
-    const result = await createSubscriber(email);
-    return res.status(200).json(result);
-  } catch (error) {
-    return res.status(500).json(error.message);
-  }
+  const result = await createSubscriber(email);
+  res.status(201).json(result);
 };
 
-const GetSubcribedUser = async (req, res) => {
+const GetSubscribedUser = async (req, res) => {
   const { email } = req.body;
-  try {
-    const result = await getSubcribedUser(email);
-    return res.status(200).json(result);
-  } catch (error) {
-    return res.status(500).json(error.message);
-  }
+  const result = await getSubscribedUser(email);
+  res.status(200).json(result);
 };
 
-export { CreateSubscriber, GetSubcribedUser };
+export { CreateSubscriber, GetSubscribedUser };

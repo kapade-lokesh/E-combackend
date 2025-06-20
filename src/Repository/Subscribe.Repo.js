@@ -1,14 +1,25 @@
-import { Subscribe } from "../Models/Subcribe.Model.js";
+// src/Repository/Subscribe.Repo.js
+import { Subscribe } from "../Models/Subscribe.Model.js";
+import ApiError from "../utils/ApiError.js";
 
 const addNewSubscriber = async (email) => {
-  const subscibeduser = await new Subscribe(email);
-  await subscibeduser.save();
-  return subscibeduser;
+  try {
+    const subscribedUser = new Subscribe({ email });
+    return await subscribedUser.save();
+  } catch (error) {
+    if (error.code === 11000) {
+      throw new ApiError(400, "DUPLICATE_EMAIL", "Email is already subscribed");
+    }
+    throw new ApiError(
+      500,
+      "CREATE_FAILED",
+      `Failed to subscribe: ${error.message}`
+    );
+  }
 };
 
-const findSubcribedUser = async (email) => {
-  const subscibeduser = await Subscribe.findOne(email);
-  return subscibeduser;
+const findSubscribedUser = async (email) => {
+  return await Subscribe.findOne({ email });
 };
 
-export { addNewSubscriber, findSubcribedUser };
+export { addNewSubscriber, findSubscribedUser };
